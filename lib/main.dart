@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tflite/tflite.dart';
 
 void main() {
   runApp(const MyApp());
@@ -52,13 +53,64 @@ class _MyHomePageState extends State<MyHomePage> {
   final double _carat = 0.0;
   final TextEditingController _caratController = TextEditingController();
 
+  final double _cut = 0.0;
+  final TextEditingController _cutController = TextEditingController();
+
+  final double _x = 0.0;
+  final TextEditingController _xController = TextEditingController();
+
+  final double _y = 0.0;
+  final TextEditingController _yController = TextEditingController();
+
+  final double _z = 0.0;
+  final TextEditingController _zController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Padding(
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: InputField(
+          caratController: _caratController,
+          cutController: _cutController,
+          xController: _xController,
+          yController: _yController,
+          zController: _zController,
+        ),
+      ),
+    );
+  }
+}
+
+class InputField extends StatelessWidget {
+  const InputField({
+    super.key,
+    required TextEditingController caratController,
+    required TextEditingController cutController,
+    required TextEditingController xController,
+    required TextEditingController yController,
+    required TextEditingController zController,
+  })  : _caratController = caratController,
+        _cutController = cutController,
+        _xController = xController,
+        _yController = yController,
+        _zController = zController;
+
+  final TextEditingController _caratController;
+  final TextEditingController _cutController;
+  final TextEditingController _xController;
+  final TextEditingController _yController;
+  final TextEditingController _zController;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,6 +120,26 @@ class _MyHomePageState extends State<MyHomePage> {
               controller: _caratController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Carat'),
+            ),
+            TextFormField(
+              controller: _cutController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Cut'),
+            ),
+            TextFormField(
+              controller: _xController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'X'),
+            ),
+            TextFormField(
+              controller: _yController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Y'),
+            ),
+            TextFormField(
+              controller: _zController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Z'),
             ),
             // Add the submit button here
             const ElevatedButton(
@@ -92,7 +164,4 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-
-  // ... Other methods and variables (e.g., _submit) remain unchanged
 }
-

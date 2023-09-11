@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tflite/tflite.dart';
+import 'package:tflite_flutter/tflite_flutter.dart';
+import 'login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -65,11 +66,61 @@ class _MyHomePageState extends State<MyHomePage> {
   final double _z = 0.0;
   final TextEditingController _zController = TextEditingController();
 
+  double _predictionResult = 0.0;
+
+  // Future<void> makePredictions() async {
+  //   // Get input values from controllers
+  //   double carat = double.tryParse(_caratController.text) ?? 0.0;
+  //   double cut = double.tryParse(_cutController.text) ?? 0.0;
+  //   double x = double.tryParse(_xController.text) ?? 0.0;
+  //   double y = double.tryParse(_yController.text) ?? 0.0;
+  //   double z = double.tryParse(_zController.text) ?? 0.0;
+
+  //   final input = TensorBufferFloat(<double>[carat, cut, x, y, z]);
+  //   final output = {};
+
+  //   final interpreter =
+  //       await Interpreter.fromAsset('assets/diamond_price_model.tflite');
+
+  //   await interpreter.run(input, output);
+
+  //   final predictionResult = output[interpreter.getOutputTensor(0)];
+
+  //   setState(() {
+  //     _predictionResult = predictionResult;
+  //   });
+  // }
+
+  @override
+  void initState() {
+    super.initState();
+    loadModel();
+  }
+
+  Future<void> loadModel() async {
+    try {
+      final interpreter =
+          await Interpreter.fromAsset('diamond_price_model.tflite');
+      print("Model Loaded Succesfully");
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () {
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                  builder: (context) => LoginPage(),
+                ));
+              })
+        ],
       ),
       body: GestureDetector(
         onTap: () {
@@ -156,7 +207,7 @@ class InputField extends StatelessWidget {
             ),
             const SizedBox(height: 8.0),
             const Text(
-              "0", // Display the prediction result here
+              '0', // Display the prediction result here
               style: TextStyle(fontSize: 16.0),
             ),
           ],

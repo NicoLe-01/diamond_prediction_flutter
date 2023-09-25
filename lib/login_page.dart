@@ -10,8 +10,8 @@ class LoginPage extends StatelessWidget {
   final passwordController = TextEditingController();
 
   void signIn(BuildContext context) {
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (context) => MyHomePage(title: "Diamond Prediction")));
+    Navigator.of(context)
+        .pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen()));
   }
 
   @override

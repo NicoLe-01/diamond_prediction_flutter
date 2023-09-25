@@ -1,5 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'login_page.dart';
 
 void main() {
@@ -7,23 +9,13 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Diamond Prediction'),
@@ -33,16 +25,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  const MyHomePage({Key? key, required this.title});
 
   final String title;
 
@@ -51,59 +34,39 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final double _carat = 0.0;
   final TextEditingController _caratController = TextEditingController();
-
-  final double _cut = 0.0;
   final TextEditingController _cutController = TextEditingController();
-
-  final double _x = 0.0;
   final TextEditingController _xController = TextEditingController();
-
-  final double _y = 0.0;
   final TextEditingController _yController = TextEditingController();
-
-  final double _z = 0.0;
   final TextEditingController _zController = TextEditingController();
 
-  double _predictionResult = 0.0;
+  double _predictionResult = 0.0; // Move it to the top of the class
 
-  // Future<void> makePredictions() async {
-  //   // Get input values from controllers
-  //   double carat = double.tryParse(_caratController.text) ?? 0.0;
-  //   double cut = double.tryParse(_cutController.text) ?? 0.0;
-  //   double x = double.tryParse(_xController.text) ?? 0.0;
-  //   double y = double.tryParse(_yController.text) ?? 0.0;
-  //   double z = double.tryParse(_zController.text) ?? 0.0;
+  Future<void> makePredictions() async {
+    double carat = double.tryParse(_caratController.text) ?? 0.0;
+    double cut = double.tryParse(_cutController.text) ?? 0.0;
+    double x = double.tryParse(_xController.text) ?? 0.0;
+    double y = double.tryParse(_yController.text) ?? 0.0;
+    double z = double.tryParse(_zController.text) ?? 0.0;
 
-  //   final input = TensorBufferFloat(<double>[carat, cut, x, y, z]);
-  //   final output = {};
+    final apiUrl = Uri.parse('http://10.0.2.2:5000/predict');
 
-  //   final interpreter =
-  //       await Interpreter.fromAsset('assets/diamond_price_model.tflite');
+    final response = await http.post(
+      apiUrl,
+      headers: <String, String>{
+        'Content-Type': 'application/json'
+      },
+      body: jsonEncode({'carat': carat, 'cut': cut, 'x': x, 'y': y, 'z': z}),
+    );
 
-  //   await interpreter.run(input, output);
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      final predictionResult = data['prediction'];
 
-  //   final predictionResult = output[interpreter.getOutputTensor(0)];
-
-  //   setState(() {
-  //     _predictionResult = predictionResult;
-  //   });
-  // }
-
-  @override
-  void initState() {
-    super.initState();
-    loadModel();
-  }
-
-  Future<void> loadModel() async {
-    try {
-      final interpreter =
-          await Interpreter.fromAsset('diamond_price_model.tflite');
-      print("Model Loaded Succesfully");
-    } catch (e) {
-      print(e);
+      setState(() {
+        _predictionResult = predictionResult;
+      });
+    } else {
     }
   }
 
@@ -114,12 +77,13 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         actions: [
           IconButton(
-              icon: Icon(Icons.logout),
-              onPressed: () {
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (context) => LoginPage(),
-                ));
-              })
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) => LoginPage(),
+              ));
+            },
+          ),
         ],
       ),
       body: GestureDetector(
@@ -132,6 +96,8 @@ class _MyHomePageState extends State<MyHomePage> {
           xController: _xController,
           yController: _yController,
           zController: _zController,
+          makePredictions: makePredictions, // Pass the function
+          predictionResult: _predictionResult, // Pass the result
         ),
       ),
     );
@@ -140,23 +106,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
 class InputField extends StatelessWidget {
   const InputField({
-    super.key,
+    Key? key,
     required TextEditingController caratController,
     required TextEditingController cutController,
     required TextEditingController xController,
     required TextEditingController yController,
     required TextEditingController zController,
+    required this.makePredictions, // Receive the function
+    required this.predictionResult, // Receive the result
   })  : _caratController = caratController,
         _cutController = cutController,
         _xController = xController,
         _yController = yController,
-        _zController = zController;
+        _zController = zController,
+        super(key: key);
 
   final TextEditingController _caratController;
   final TextEditingController _cutController;
   final TextEditingController _xController;
   final TextEditingController _yController;
   final TextEditingController _zController;
+  final VoidCallback makePredictions; // Declare the function
+  final double predictionResult; // Declare the result
 
   @override
   Widget build(BuildContext context) {
@@ -192,24 +163,19 @@ class InputField extends StatelessWidget {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Z'),
             ),
-            // Add the submit button here
-            const ElevatedButton(
-              onPressed: null,
-              child: Text('Submit'),
+            ElevatedButton(
+              onPressed: makePredictions, // Call the makePredictions function
+              child: const Text('Submit'),
             ),
             const SizedBox(height: 16.0),
-            const Text(
-              'Prediction Result:',
-              style: TextStyle(
+            Text(
+              'Hasil Prediksi : $predictionResult', // Display the prediction result here
+              style: const TextStyle(
                 fontSize: 18.0,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8.0),
-            const Text(
-              '0', // Display the prediction result here
-              style: TextStyle(fontSize: 16.0),
-            ),
           ],
         ),
       ),

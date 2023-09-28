@@ -28,8 +28,9 @@ class LoginPage extends StatelessWidget {
               children: [
                 SizedBox(height: 20),
                 Icon(
-                  Icons.lock,
-                  size: 100,
+                  Icons.diamond,
+                  size: 150,
+                  color: Color.fromARGB(255, 7, 75, 212),
                 ),
                 SizedBox(height: 20),
                 Text(
@@ -74,7 +75,7 @@ class LoginPage extends StatelessWidget {
                   onTap: () {
                     signIn(context);
                   },
-                )
+                ),
               ],
             ),
           ),

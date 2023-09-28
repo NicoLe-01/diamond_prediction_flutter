@@ -91,7 +91,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
       final predictionResult = data['prediction'];
-      print(predictionResult);
 
       setState(() {
         _predictionResult = predictionResult;

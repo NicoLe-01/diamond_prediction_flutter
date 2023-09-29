@@ -94,6 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         _predictionResult = predictionResult;
+        print('Prediction : $_predictionResult');
         _predicting = false;
       });
     } else {

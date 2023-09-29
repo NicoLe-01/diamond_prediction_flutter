@@ -26,15 +26,15 @@ class LoginPage extends StatelessWidget {
           child: Center(
             child: Column(
               children: [
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Icon(
                   Icons.diamond,
                   size: 150,
                   color: Color.fromARGB(255, 7, 75, 212),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 Text(
-                  "Lorem Ipsum si aler dolor",
+                  "Diamond Prediction",
                   style: TextStyle(color: Colors.grey[600], fontSize: 16),
                 ),
                 SizedBox(

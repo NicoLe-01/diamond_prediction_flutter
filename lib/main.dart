@@ -1,8 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'login_page.dart';
+import 'dart:convert';
+
+import 'package:testing_app/history_screen.dart';
+import 'package:testing_app/login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,31 +19,49 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Diamond Prediction'),
+      home: const HomeScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title});
-
-  final String title;
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _caratController = TextEditingController();
   final TextEditingController _cutController = TextEditingController();
   final TextEditingController _xController = TextEditingController();
   final TextEditingController _yController = TextEditingController();
   final TextEditingController _zController = TextEditingController();
 
-  double _predictionResult = 0.0; // Move it to the top of the class
+  double _predictionResult = 0.0;
+
+  int _currentIndex = 0;
+  bool _predicting = false;
+
+  late List<Widget> _children = [];
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   Future<void> makePredictions() async {
+    setState(() {
+      _predicting = true;
+    });
+
     double carat = double.tryParse(_caratController.text) ?? 0.0;
     double cut = double.tryParse(_cutController.text) ?? 0.0;
     double x = double.tryParse(_xController.text) ?? 0.0;
@@ -53,28 +72,36 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final response = await http.post(
       apiUrl,
-      headers: <String, String>{
-        'Content-Type': 'application/json'
-      },
+      headers: <String, String>{'Content-Type': 'application/json'},
       body: jsonEncode({'carat': carat, 'cut': cut, 'x': x, 'y': y, 'z': z}),
     );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
-      final predictionResult = data['prediction'];
+      final SpredictionResult = data['prediction'];
 
       setState(() {
-        _predictionResult = predictionResult;
+        _predictionResult = SpredictionResult;
+        print('Prediction : $_predictionResult');
+        _predicting = false;
       });
     } else {
+      print('Prediction failed');
+      setState(() {
+        _predicting = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    _children = [
+      Prediction(),
+      HistoryScreen(),
+    ];
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text('Diamond Prediction'),
         actions: [
           IconButton(
             icon: Icon(Icons.logout),
@@ -86,51 +113,25 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).requestFocus(FocusNode());
-        },
-        child: InputField(
-          caratController: _caratController,
-          cutController: _cutController,
-          xController: _xController,
-          yController: _yController,
-          zController: _zController,
-          makePredictions: makePredictions, // Pass the function
-          predictionResult: _predictionResult, // Pass the result
-        ),
+      body: _children.elementAt(_currentIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'History',
+          ),
+        ],
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
       ),
     );
   }
-}
 
-class InputField extends StatelessWidget {
-  const InputField({
-    Key? key,
-    required TextEditingController caratController,
-    required TextEditingController cutController,
-    required TextEditingController xController,
-    required TextEditingController yController,
-    required TextEditingController zController,
-    required this.makePredictions, // Receive the function
-    required this.predictionResult, // Receive the result
-  })  : _caratController = caratController,
-        _cutController = cutController,
-        _xController = xController,
-        _yController = yController,
-        _zController = zController,
-        super(key: key);
-
-  final TextEditingController _caratController;
-  final TextEditingController _cutController;
-  final TextEditingController _xController;
-  final TextEditingController _yController;
-  final TextEditingController _zController;
-  final VoidCallback makePredictions; // Declare the function
-  final double predictionResult; // Declare the result
-
-  @override
-  Widget build(BuildContext context) {
+  SingleChildScrollView Prediction() {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -164,12 +165,16 @@ class InputField extends StatelessWidget {
               decoration: const InputDecoration(labelText: 'Z'),
             ),
             ElevatedButton(
-              onPressed: makePredictions, // Call the makePredictions function
+              onPressed: () {
+                setState(() {
+                  makePredictions();
+                });
+              },
               child: const Text('Submit'),
             ),
             const SizedBox(height: 16.0),
             Text(
-              'Hasil Prediksi : $predictionResult', // Display the prediction result here
+              "Hasil Prediksi : $_predictionResult",
               style: const TextStyle(
                 fontSize: 18.0,
                 fontWeight: FontWeight.bold,

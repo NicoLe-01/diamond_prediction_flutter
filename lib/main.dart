@@ -49,18 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _children = [
-      InputField(
-        caratController: _caratController,
-        cutController: _cutController,
-        xController: _xController,
-        yController: _yController,
-        zController: _zController,
-        makePredictions: makePredictions,
-        predictionResult: _predictionResult,
-      ),
-      HistoryScreen(),
-    ];
   }
 
   void _onTabTapped(int index) {
@@ -90,10 +78,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
-      final predictionResult = data['prediction'];
+      final SpredictionResult = data['prediction'];
 
       setState(() {
-        _predictionResult = predictionResult;
+        _predictionResult = SpredictionResult;
         print('Prediction : $_predictionResult');
         _predicting = false;
       });
@@ -107,6 +95,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _children = [
+      Prediction(),
+      HistoryScreen(),
+    ];
     return Scaffold(
       appBar: AppBar(
         title: Text('Diamond Prediction'),
@@ -121,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: IndexedStack(index: _currentIndex, children: _children),
+      body: _children.elementAt(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -138,30 +130,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
 
-class InputField extends StatelessWidget {
-  const InputField({
-    Key? key,
-    required this.caratController,
-    required this.cutController,
-    required this.xController,
-    required this.yController,
-    required this.zController,
-    required this.makePredictions,
-    required this.predictionResult,
-  }) : super(key: key);
-
-  final TextEditingController caratController;
-  final TextEditingController cutController;
-  final TextEditingController xController;
-  final TextEditingController yController;
-  final TextEditingController zController;
-  final VoidCallback makePredictions;
-  final double predictionResult;
-
-  @override
-  Widget build(BuildContext context) {
+  SingleChildScrollView Prediction() {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -170,45 +140,45 @@ class InputField extends StatelessWidget {
           children: <Widget>[
             const SizedBox(height: 16.0),
             TextFormField(
-              controller: caratController,
+              controller: _caratController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Carat'),
             ),
             TextFormField(
-              controller: cutController,
+              controller: _cutController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Cut'),
             ),
             TextFormField(
-              controller: xController,
+              controller: _xController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'X'),
             ),
             TextFormField(
-              controller: yController,
+              controller: _yController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Y'),
             ),
             TextFormField(
-              controller: zController,
+              controller: _zController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Z'),
             ),
             ElevatedButton(
-              onPressed: makePredictions,
+              onPressed: () {
+                setState(() {
+                  makePredictions();
+                });
+              },
               child: const Text('Submit'),
             ),
             const SizedBox(height: 16.0),
-            Builder(
-              builder: (context) {
-                return Text(
-                  'Hasil Prediksi : $predictionResult',
-                  style: const TextStyle(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                );
-              },
+            Text(
+              "Hasil Prediksi : $_predictionResult",
+              style: const TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8.0),
           ],

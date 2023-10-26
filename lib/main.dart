@@ -97,14 +97,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     _children = [
       Prediction(),
-      HistoryScreen(),
+      const HistoryScreen(),
     ];
     return Scaffold(
       appBar: AppBar(
-        title: Text('Diamond Prediction'),
+        title: const Text('Diamond Prediction'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: () {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
                 builder: (context) => LoginPage(),

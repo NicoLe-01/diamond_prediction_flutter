@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "851378936140",
+    "project_id": "diamond-prediction",
+    "storage_bucket": "diamond-prediction.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851378936140:android:b9b9429e9b1d2097b517e9",
+        "android_client_info": {
+          "package_name": "com.itk.diamondprediction"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2wl7zGU65-da6_URil6_iUnBjCNKH-o0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

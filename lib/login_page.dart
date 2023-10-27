@@ -1,17 +1,35 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:testing_app/components/my_button.dart';
-import 'package:testing_app/components/text_field.dart';
-import 'package:testing_app/main.dart';
+import 'package:testing_app/home_page.dart';
+import 'components/my_button.dart';
+import 'components/text_field.dart';
 
 class LoginPage extends StatelessWidget {
-  LoginPage({Key? key}) : super(key: key);
+  LoginPage({Key? key});
 
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
-  void signIn(BuildContext context) {
-    Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen()));
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> signIn(BuildContext context) async {
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: usernameController.text,
+        password: passwordController.text,
+      );
+      // User is signed in.
+      // You can navigate to the HomeScreen or any other authenticated page.
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        print('No user found for that email.');
+      } else if (e.code == 'wrong-password') {
+        print('Wrong password provided for that user.');
+      }
+    }
   }
 
   @override

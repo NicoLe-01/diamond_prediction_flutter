@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:testing_app/components/form_field.dart';
+import 'package:testing_app/components/text_field.dart';
 import 'package:testing_app/history_screen.dart';
 import 'package:testing_app/login_page.dart';
 import 'dart:convert';
@@ -41,10 +43,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> storePrediction(double carat, double cut, double x, double y,
       double z, double price) async {
-    final CollectionReference predictionsCollection =
-        FirebaseFirestore.instance.collection('predictions');
+    User? user = FirebaseAuth.instance.currentUser;
 
-    await predictionsCollection.add({
+    if (user == null) {
+      return;
+    }
+
+    final CollectionReference userCollections =
+        FirebaseFirestore.instance.collection('users').doc(user.uid).collection('predictions');
+
+    await userCollections.add({
       'carat': carat,
       'cut': cut,
       'x': x,
@@ -55,7 +63,31 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  bool validateUserInput() {
+    // Implement your validation logic here
+    // You can check if the user input is in the expected range, format, etc.
+    // Return true if the input is valid, otherwise, return false and show an error.
+    return true;
+  }
+
+  void showError(String errorMessage) {
+    // Implement how you want to display error messages to the user (e.g., a snackbar).
+  }
+
+  void clearInputFields() {
+    // Clear the input fields after a successful prediction.
+    _caratController.clear();
+    _cutController.clear();
+    _xController.clear();
+    _yController.clear();
+    _zController.clear();
+  }
+
   Future<void> makePredictions() async {
+    if (!validateUserInput()) {
+      return;
+    }
+
     setState(() {
       _predicting = true;
     });
@@ -68,29 +100,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final apiUrl = Uri.parse('http://10.0.2.2:5000/predict');
 
-    final response = await http.post(
-      apiUrl,
-      headers: <String, String>{'Content-Type': 'application/json'},
-      body: jsonEncode({'carat': carat, 'cut': cut, 'x': x, 'y': y, 'z': z}),
-    );
+    try {
+      final response = await http.post(
+        apiUrl,
+        headers: <String, String>{'Content-Type': 'application/json'},
+        body: jsonEncode({'carat': carat, 'cut': cut, 'x': x, 'y': y, 'z': z}),
+      );
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
-      final predictionResult = data['prediction'];
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final predictionResult = data['prediction'];
 
-      setState(() {
-        _predictionResult = predictionResult;
-        print('Prediction : $_predictionResult');
-        _predicting = false;
-      });
-    } else {
-      print('Prediction failed');
-      setState(() {
-        _predicting = false;
-      });
+        setState(() {
+          _predictionResult = predictionResult;
+          storePrediction(carat, cut, x, y, z, _predictionResult);
+          clearInputFields();
+          _predicting = false;
+        });
+      } else {
+        showError("Prediction Failed");
+        setState(() {
+          _predicting = false;
+        });
+      }
+    } catch (error) {
+      showError("An error occoured : $error ");
     }
-
-    storePrediction(carat, cut, x, y, z, _predictionResult);
   }
 
   Future<void> signOut() async {
@@ -133,59 +168,49 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  SingleChildScrollView Prediction() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            const SizedBox(height: 16.0),
-            TextFormField(
-              controller: _caratController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Carat'),
-            ),
-            TextFormField(
-              controller: _cutController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Cut'),
-            ),
-            TextFormField(
-              controller: _xController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'X'),
-            ),
-            TextFormField(
-              controller: _yController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Y'),
-            ),
-            TextFormField(
-              controller: _zController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Z'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  makePredictions();
-                });
-              },
-              child: const Text('Submit'),
-            ),
-            const SizedBox(height: 16.0),
-            Text(
-              "Hasil Prediksi : $_predictionResult",
-              style: const TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
+  SafeArea Prediction() {
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              const Text("Form Prediciton", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16.0,),
+              buildTextFormField(_caratController, "Carat"),
+              const SizedBox(height: 16.0,),
+              buildTextFormField(_cutController, 'Cut'),
+              const SizedBox(height: 16.0,),
+              buildTextFormField(_xController, 'X'),
+              const SizedBox(height: 16.0,),
+              buildTextFormField(_yController, 'Y'),
+              const SizedBox(height: 16.0,),
+              buildTextFormField(_zController, 'Z'),
+              const SizedBox(height: 16.0,),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    makePredictions();
+                  });
+                },
+                child: const Text('Submit'),
               ),
-            ),
-            const SizedBox(height: 8.0),
-          ],
+              const SizedBox(height: 16.0),
+              Text(
+                "Hasil Prediksi : $_predictionResult",
+                style: const TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8.0),
+            ],
+          ),
         ),
       ),
     );
   }
+
 }

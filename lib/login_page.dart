@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:testing_app/home_page.dart';
+import 'package:testing_app/register_page.dart';
 import 'components/my_button.dart';
 import 'components/text_field.dart';
 
@@ -72,28 +74,34 @@ class LoginPage extends StatelessWidget {
                   obscureText: true,
                 ),
                 SizedBox(
-                  height: 15,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Forgot Password?',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: 25,
+                  height: 30,
                 ),
                 MyButton(
                   onTap: () {
                     signIn(context);
                   },
                 ),
+                SizedBox(height: 8,),
+                RichText(
+                  text: TextSpan(
+                    text: 'Not have an account? Click ',
+                    style: TextStyle(color: Colors.black45),
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'here',
+                        style: TextStyle(color: Colors.blue),
+                        recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => RegisterPage()),
+            );
+          },
+      ),
+    ],
+  ),
+)
+
+                
               ],
             ),
           ),
